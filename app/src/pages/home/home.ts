@@ -36,14 +36,26 @@ export class HomePage {
     });
 
     // TODO: Connect to the device with "AWS.IotData"
+    
+    this.device = new AWS.IotData({
+      credentials: config.credentials,
+      region: config.region,
+      endpoint: 'a1vb512hpb4stb.iot.us-east-1.amazonaws.com'
+    })
   }
 
   sendCommand(command) {
     // TODO: Publish your command
+    this.device.publish(this.getCommand(command));
+
   }
 
   getCommand(command) {
-    // TODO: return the command we are going to send
+    return {
+      topic: 'light-control',
+      payload: JSON.stringify({ message: command }),
+      qos: 0
+    };
   }
 
   handleResult(err, data) {
@@ -74,7 +86,10 @@ export class HomePage {
           for (let existingBeacon of this.beacons) {
             if (this.isBeaconWeCareAbout(existingBeacon)) {
               // TODO: Handle what happens when we have found our beacon
-            }
+              if (Math.abs(existingBeacon.rssi) < 75)
+                sendCommand('blue');
+              else
+                sendCommand('off');
           }
 
           // TODO: did we find a beacon and what do we want to do?
@@ -86,5 +101,9 @@ export class HomePage {
 
   isBeaconWeCareAbout(beacon) {
     // TODO: Check if this is the beacon we care about
+      if (beacon.major == beacon_major && beacon.minor == beacon_minor)
+        return true;
+      else
+        return false;
   }
 }
